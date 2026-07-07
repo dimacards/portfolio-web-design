@@ -75,6 +75,9 @@
 
 /* --- Иллюстрации: фиксированные размеры из Figma --- */
 .p-ill { flex-shrink: 0; }
+/* инлайн-SVG иллюстраций не режутся своим viewBox во время анимации
+   (лампочка/звёзды могут выходить за границы при float/spin) */
+.ill { overflow: visible; }
 .ill { display: block; width: 100%; height: 100%; }
 .p-ill--phone  { width: 240px;    height: 174.82px; }
 .p-ill--mascot { width: 240px;    height: 180px; display: flex; align-items: center; justify-content: center; }
