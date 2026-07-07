@@ -1,0 +1,150 @@
+/* ============================================================
+   Footer (Figma 49:7392 desktop / 201:591 mobile).
+   Десктоп: слева колонка навигации, справа контакты + CTA.
+   Мобилка: без навигации; текст контакта строго по центру,
+   иконка — правее (несимметрично), через grid 1fr-auto-1fr.
+   ============================================================ */
+
+.footer {
+  background: #f9f9fb;
+  padding: 78px 0 92px;
+}
+.footer__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  /* только вертикальные отступы: боковые даёт .container */
+  padding-block: 24px 16px;
+  margin-bottom: 24px;
+}
+.footer__nav {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+}
+.footer__link {
+  padding: 0 12px;
+  font-family: "Inter", sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 17px;
+  color: #343433;
+  text-decoration: none;
+  white-space: nowrap;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+.footer__link:hover { background: #eff0f3; }
+
+.footer__aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 48px;
+}
+.footer__contact-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+/* конверт — на уровне верхней почты (первой строки) */
+.footer__cico--mail {
+  align-self: flex-start;
+  margin-top: 1px;
+}
+.footer__emails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: right;
+}
+.footer__contact-link {
+  font-family: "Inter", sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #0086fc;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.footer__cico { display: block; flex-shrink: 0; }
+.footer__icon { display: block; width: 30px; height: 30px; }
+.footer__icon--mail { height: 24px; }
+
+/* звёздочка над значком инстаграма: равноудалена сверху и справа */
+.footer__ig { position: relative; }
+.footer__asterisk {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  color: #0086fc;
+}
+
+/* CTA из Figma (62:7773): px 20, py 4, внутренний ряд 48 → высота 56 */
+.footer__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 20px;
+  min-height: 56px;
+  border-radius: 32px;
+  background: #171717;
+  color: #fff;
+  font-family: "Inter", sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 17px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+}
+.footer__cta:hover { opacity: 0.85; }
+.footer__cta img { width: 21.33px; height: 19.6px; }
+
+.footer__legal {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: rgba(68, 68, 68, 0.5);
+}
+
+/* --- Мобилка (201:591) --- */
+@media (max-width: 900px) {
+  .footer { padding: 32px 0; }
+  .footer__top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 32px;
+    padding-block: 0;
+    margin-bottom: 16px;
+  }
+  .footer__nav { display: none; }
+  .footer__aside { align-items: stretch; gap: 24px; width: 100%; }
+
+  /* текст ровно по центру экрана, иконка правее (несимметрично) */
+  .footer__contact-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+  }
+  .footer__ctext { grid-column: 2; text-align: center; }
+  .footer__cico { grid-column: 3; justify-self: start; margin-left: 10px; }
+
+  .footer__cta {
+    width: 100%;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  .footer__legal { font-size: 14px; }
+}

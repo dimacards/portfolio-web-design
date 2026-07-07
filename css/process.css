@@ -1,0 +1,274 @@
+/* ============================================================
+   Секция «Процесс работы» — 6 шагов зигзагом (Figma 45:6694),
+   мобилка — колонкой (155:362).
+   Иллюстрации: телефон/ноутбук/переписка — инлайн-SVG,
+   разобранные на слои (волны, звёзды, мышка, пузыри, блоб);
+   анимации на группах через transform-box: fill-box,
+   поэтому тени/позиции не разъезжаются.
+   ============================================================ */
+
+.process {
+  padding: 74px 0 89px;
+  background: #fff;
+}
+.process__wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 58px;
+}
+.process__title {
+  margin: 0;
+  text-align: center;
+  font-family: "Inter", sans-serif;
+  font-size: 44px;
+  font-weight: 400;
+  letter-spacing: -0.44px;
+  line-height: 48px;
+  color: #121212;
+}
+
+.process__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+}
+
+/* --- Ряд шага: иллюстрация + текст --- */
+.p-step {
+  display: flex;
+  gap: 80px;
+  align-items: center;
+  justify-content: center;
+  height: 180px;
+  width: 100%;
+}
+.p-step--ill-left  { padding-right: 64px; }
+.p-step--ill-right { padding-left: 64px; }
+
+.p-step__text {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 385px;
+  flex-shrink: 0;
+}
+.p-step__num {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 23px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #0086fc;
+}
+.p-step__desc {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #454647;
+}
+
+/* --- Иллюстрации: фиксированные размеры из Figma --- */
+.p-ill { flex-shrink: 0; }
+.ill { display: block; width: 100%; height: 100%; }
+.p-ill--phone  { width: 240px;    height: 174.82px; }
+.p-ill--mascot { width: 240px;    height: 180px; display: flex; align-items: center; justify-content: center; }
+.p-ill--mascot img,
+.p-ill--mascot .ill { width: 162.5px; height: 238.2px; }
+.p-ill--laptop { width: 274.31px; height: 200px; }
+.p-ill--langs  { width: 240px;    height: 202.74px; }
+.p-ill--langs img { width: 100%; height: 100%; }
+.p-ill--chat   { width: 274.31px; height: 200px; }
+
+/* --- Папка: композиция из 4 частей (позиции из Figma-грида) --- */
+.p-folder {
+  position: relative;
+  width: 240px;
+  height: 222px;
+}
+.p-folder__inner {
+  position: absolute;
+  inset: 0;
+  width: 240px;
+  height: 222px;
+}
+/* Повороты — через свойство rotate (не transform), чтобы
+   анимации transform на самих span'ах не сбрасывали угол.
+   Так рамка карточки движется ВМЕСТЕ с картинкой. */
+.p-folder__inner > span { position: absolute; display: block; }
+.p-folder__main  { left: 7.15px;   top: 11.23px;  width: 186.07px; height: 170.11px; rotate: -8deg; }
+.p-folder__main img { width: 100%; height: 100%; }
+.p-folder__card  { left: 114.34px; top: 95.96px;  width: 114.34px; height: 114.34px; rotate: 6deg;
+  background: #fff; border: 1.53px solid #edeef2; border-radius: 18.38px; padding: 8.17px; box-sizing: border-box; }
+.p-folder__card img { width: 100%; height: 100%; border-radius: 10px; }
+.p-folder__star1 { left: -6px;     top: 187px;    width: 33.4px;  height: 33.4px;  rotate: -9.11deg; }
+.p-folder__star2 { left: 191.8px;  top: 6px;      width: 33.4px;  height: 33.4px;  rotate: 28.85deg; }
+.p-folder__star1 img, .p-folder__star2 img { width: 100%; height: 100%; }
+
+/* --- Соединительная стрелка между шагами --- */
+.process__connector {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* стрелка растягивается вниз к следующему блоку */
+.process__connector svg {
+  width: 53.5px;
+  height: 11.05px;
+  /* origin 0 50% нужен, чтобы стрелка росла сверху вниз;
+     translateY компенсирует смещение поворота, чтобы стрелка
+     стояла по центру своего бокса (равный воздух сверху/снизу) */
+  transform: translateY(-26.75px) rotate(90deg) scaleX(0);
+  transform-origin: 0% 50%;
+  transition: transform 0.7s var(--ease-out-soft, ease-out);
+  transition-delay: 0.15s;
+}
+.process__connector.is-visible svg {
+  transform: translateY(-26.75px) rotate(90deg) scaleX(1);
+}
+
+/* ============================================================
+   АНИМАЦИИ (только внутри .process.is-visible; все — на группах
+   инлайн-SVG через transform-box: fill-box)
+   ============================================================ */
+
+/* мягкое покачивание (амплитуда как в hero на мобилке) */
+@keyframes proc-float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%      { transform: translate3d(0, -6px, 0) rotate(-1.5deg); }
+}
+@keyframes proc-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+/* волны телефона: появляются по одной, волной */
+@keyframes ph-wave {
+  0%, 100% { opacity: 0.2; }
+  30%, 55% { opacity: 1; }
+}
+
+/* -- телефон -- */
+.process.is-visible .ph-handset {
+  transform-box: fill-box; transform-origin: 50% 50%;
+  animation: proc-float 4.6s var(--ease-in-out-sine, ease-in-out) infinite;
+}
+.ph-wave { opacity: 0.2; }
+.process.is-visible .ph-wave--1 { animation: ph-wave 2.8s ease-in-out 0s    infinite; }
+.process.is-visible .ph-wave--2 { animation: ph-wave 2.8s ease-in-out 0.35s infinite; }
+.process.is-visible .ph-wave--3 { animation: ph-wave 2.8s ease-in-out 0.7s  infinite; }
+.process.is-visible .ph-star {
+  transform-box: fill-box; transform-origin: 50% 50%;
+  animation: proc-spin 16s linear infinite;
+}
+.process.is-visible .ph-star--b { animation-duration: 13s; }
+.process.is-visible .ph-star--c { animation-duration: 20s; }
+
+/* -- папка: плавает вместе с содержимым (rotate отдельным свойством),
+   звёзды крутятся -- */
+.process.is-visible .p-folder__main,
+.process.is-visible .p-folder__card {
+  animation: proc-float 5.2s var(--ease-in-out-sine, ease-in-out) infinite;
+}
+.process.is-visible .p-folder__card { animation-duration: 4.4s; animation-delay: 0.6s; }
+.process.is-visible .p-folder__star1,
+.process.is-visible .p-folder__star2 {
+  animation: proc-spin 15s linear infinite;
+}
+.process.is-visible .p-folder__star2 { animation-duration: 21s; }
+
+/* -- маскот с лампой: голова и лампа плавают, звёзды крутятся -- */
+.process.is-visible .ml-head,
+.process.is-visible .ml-lamp {
+  transform-box: fill-box; transform-origin: 50% 50%;
+  animation: proc-float 5s var(--ease-in-out-sine, ease-in-out) infinite;
+}
+.process.is-visible .ml-lamp { animation-duration: 4.3s; animation-delay: 0.5s; }
+.process.is-visible .ml-star {
+  transform-box: fill-box; transform-origin: 50% 50%;
+  animation: proc-spin 14s linear infinite;
+}
+.process.is-visible .ml-star--b { animation-duration: 18s; }
+.process.is-visible .ml-star--c { animation-duration: 22s; }
+
+/* -- языки: плавают целиком -- */
+.process.is-visible .p-ill--langs img {
+  animation: proc-float 5s var(--ease-in-out-sine, ease-in-out) infinite;
+}
+
+/* -- ноутбук: блоб СТАТИЧНЫЙ, ноутбук и мышка плавают отдельно -- */
+.process.is-visible .lp-laptop {
+  transform-box: fill-box; transform-origin: 50% 50%;
+  animation: proc-float 5.4s var(--ease-in-out-sine, ease-in-out) infinite;
+}
+.process.is-visible .lp-mouse {
+  transform-box: fill-box; transform-origin: 50% 50%;
+  animation: proc-float 4.2s var(--ease-in-out-sine, ease-in-out) 0.8s infinite;
+}
+
+/* -- переписка: пузыри отдельно, искры крутятся -- */
+.process.is-visible .ch-bub1,
+.process.is-visible .ch-bub2 {
+  transform-box: fill-box; transform-origin: 50% 50%;
+  animation: proc-float 4.8s var(--ease-in-out-sine, ease-in-out) infinite;
+}
+.process.is-visible .ch-bub2 { animation-duration: 4s; animation-delay: 0.9s; }
+.process.is-visible .ch-spark {
+  transform-box: fill-box; transform-origin: 50% 50%;
+  animation: proc-spin 14s linear infinite;
+}
+.process.is-visible .ch-spark--blue   { animation-duration: 19s; }
+.process.is-visible .ch-spark--yellow { animation-duration: 23s; }
+
+/* ============================================================
+   МОБИЛКА (Figma 155:362): колонка, иконка над текстом
+   ============================================================ */
+@media (max-width: 780px) {
+  .process { padding: 24px 0; }
+  .process__title {
+    font-size: 32px;
+    line-height: 48px;
+    letter-spacing: -0.32px;
+  }
+  .p-step {
+    flex-direction: column;
+    gap: 24px;
+    height: auto;
+    padding: 0;
+  }
+  /* иконка всегда над текстом (в зигзаге чётных шагов текст в DOM первый) */
+  .p-step .p-ill { order: -1; }
+  /* единый «воздух» между стрелкой и соседними иллюстрациями */
+  .process__connector { margin: 14px 0; }
+  .p-step__text {
+    width: 100%;
+    max-width: 385px;
+  }
+  .p-step__num { font-size: 19px; }
+
+  /* иконки: высота 120, пропорции сохраняются */
+  .p-ill--phone  { width: 164.74px; height: 120px; }
+  .p-ill--mascot { width: 120.9px;  height: 120px; }
+  .p-ill--mascot img,
+  .p-ill--mascot .ill { width: 81.88px; height: 120px; }
+  .p-ill--laptop { width: 164.58px; height: 120px; }
+  .p-ill--langs  { width: 142.05px; height: 120px; }
+  .p-ill--chat   { width: 164.58px; height: 120px; }
+  /* папка: тот же макет, уменьшенный масштабом */
+  .p-folder {
+    width: 130px;
+    height: 120px;
+  }
+  .p-folder__inner {
+    transform: scale(0.5405);
+    transform-origin: 0 0;
+    position: absolute;
+    width: 240px;
+    height: 222px;
+  }
+}

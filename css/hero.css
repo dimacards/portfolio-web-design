@@ -1,0 +1,425 @@
+/* ============================================================
+   Hero — адаптив (2 уровня).
+   ДЕСКТОП/ПЛАНШЕТ (≥768px): ТЕКСТ И КОНТЕНТ ФИКСИРОВАННОГО РАЗМЕРА
+     (не уменьшаются). Тянутся ТОЛЬКО иллюстрации — через единицу
+        --u = clamp(мин, (ширина − резерв контента)/K, макс)
+     чтобы заполнять боковое пространство: на широких растут (до потолка
+     ~1920), на узких ужимаются, не наезжая на контент. 1920 = потолок,
+     а не эталон. Позиции декора — из инлайн --dx/--dy/--dw/--dh + --rot.
+   МОБИЛКА (<768px): колонка — полоса декора сверху, контент, полоса снизу
+     (мобильную версию дорабатываем отдельно; здесь — рабочий вариант).
+   Анимации живут на вложенных элементах и раскладкой не затрагиваются.
+   ============================================================ */
+
+.hero-stage {
+  width: 100%;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.hero {
+  /* Три шкалы:
+     --u    — X-анкор (сильный шринк): иконки съезжаются к центру кластера.
+     --uy   — Y-анкор (РАСТЁТ при сужении): иконки разъезжаются вверх/вниз.
+     --u-size — размер И offset-компаньона (лёгкий шринк): звёзды и линии
+              остаются на своих местах относительно лидера, размер почти
+              не меняется. Пары «курсор+линия», «стилус+линия», звёзды
+              вокруг айфона/кофе используют anchor+offset — фиксированы
+              относительно своих лидеров.
+     --narrow-t — 0 на 1440+, 1 на 800 (мультипликатор для per-icon shifts). */
+  --u: clamp(0.34px, calc((100vw - 527px) / 1092), 0.8354px);
+  --uy: clamp(0.8354px, calc(0.8354px + (1440px - 100vw) * 0.00019), 0.95px);
+  --u-size: clamp(0.66px, calc(0.8354px - (1000px - 100vw) * 0.00085), 0.8354px);
+  /* narrow — БЕЗРАЗМЕРНЫЙ 0..1: делим длину на длину. */
+  --narrow-t: clamp(0, calc((1440px - 100vw) / 640px), 1);
+  position: relative;
+  width: 100%;
+  height: max(660px, calc(618 * var(--uy) + 40px));
+  background: var(--color-bg);
+}
+
+/* --- Кластеры декора. Размер боксa — по --u (компактный),
+   overflow visible т.к. иконки размером --u-size могут вылезать. --- */
+.hero__decor {
+  position: absolute;
+  top: 50%;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  overflow: visible;
+}
+.hero__decor--left {
+  left: max(1.5vw, calc((100vw - 489px) / 4 - (526.684 * var(--u)) / 2));
+  width: calc(526.684 * var(--u));
+  height: calc(618 * var(--uy));
+  transform: translateY(-50%);
+}
+.hero__decor--right {
+  right: max(1.5vw, calc((100vw - 489px) / 4 - (519.287 * var(--u)) / 2));
+  width: calc(519.287 * var(--u));
+  height: calc(643.845 * var(--uy));
+  transform: translateY(-50%);
+}
+
+/* --- Отдельный декоративный элемент. Формула anchor+offset:
+     X = cx·u  + ox·u_size − (dw·u_size·scale)/2 + adj_x·narrow
+     Y = cy·uy + oy·u_size − (dh·u_size·scale)/2 + adj_y·narrow
+   Solo icons: ox=oy=0. Companions (звёзды/линии): ox,oy≠0 → жёстко
+   привязаны к лидеру (anchor = его центр). narrow — БЕЗРАЗМЕРНЫЙ (0..1). */
+.deco {
+  position: absolute;
+  left: calc(
+    var(--cx) * var(--u)
+    + var(--ox) * var(--u-size)
+    - var(--dw) * var(--u-size) * var(--size-scale, 1) / 2
+    + var(--adj-x, 0px) * var(--narrow-t)
+  );
+  top: calc(
+    var(--cy) * var(--uy)
+    + var(--oy) * var(--u-size)
+    - var(--dh) * var(--u-size) * var(--size-scale, 1) / 2
+    + var(--adj-y, 0px) * var(--narrow-t)
+  );
+  width: calc(var(--dw) * var(--u-size) * var(--size-scale, 1));
+  height: calc(var(--dh) * var(--u-size) * var(--size-scale, 1));
+  transform: rotate(var(--rot, 0deg));
+}
+/* Курсор/стилус + их линии — обычная anchor+offset формула (базовая .deco),
+   поэтому X = cx·u → двигаются ВЛЕВО вместе с полосой (не заходят за фото),
+   а линия остаётся привязана к острию (общий анкор). Спец-override убран. */
+
+/* ЗВЁЗДЫ у объектов — ПОСТОЯННЫЙ зазор 5px от края объекта до края звезды.
+   Считаем по РЕНДЕР-ширинам (с учётом поворота) объекта (--anchor-rw) и
+   звезды (--star-rw), но позиционируем по геометрической ширине (--dw):
+     bbox_star_left = cx·u + anchor_rw·u_size/2 + gap  (для side +1)
+     left = bbox_star_left − (star_rw − dw)·u_size/2 ... сводится к формуле ниже. */
+.deco-star2,
+.deco-star3,
+.deco-star6 {
+  --gap: 5px;
+  /* anchor-scale учитывает доп. уменьшение объекта-лидера (напр. макбук
+     ниже 1080), иначе зазор до звезды растёт. */
+  left: calc(
+    var(--cx) * var(--u)
+    + var(--side-x) * (var(--anchor-rw) * var(--anchor-scale, 1) * var(--u-size) / 2 + var(--gap) + var(--star-rw) * var(--u-size) / 2)
+    - var(--dw) * var(--u-size) / 2
+    + var(--adj-x, 0px) * var(--narrow-t)
+  );
+  top: calc(
+    var(--cy) * var(--uy)
+    + var(--oy) * var(--u-size)
+    - var(--dh) * var(--u-size) / 2
+    + var(--adj-y, 0px) * var(--narrow-t)
+  );
+}
+
+/* Per-icon доводки при сужении (narrow: 0 на 1440+, 1 на ~800).
+   ВАЖНО: звёзды-спутники получают ТЕ ЖЕ adj, что и их объект, иначе
+   при сдвиге объекта звезда отстаёт и зазор ломается. */
+.deco-html    { --adj-y: -46px; }                 /* html вверх, внутрь блоба */
+/* iphone + его звёзды: вверх-вправо. */
+.deco-iphone,
+.deco-star2,
+.deco-star3   { --adj-x: 30px;  --adj-y: -38px; }
+.deco-css     { --adj-y: 26px;  --size-scale: 0.9; } /* css ниже и чуть меньше */
+/* Кофе + его звёзды едут ВПРАВО при сужении (не наезжают на текст). */
+.deco-coffee,
+.deco-star4,
+.deco-star5 { --adj-x: 66px; }
+/* Большой левый блоб едет вверх вместе с html. */
+.hero__decor--left > .deco-circle:first-of-type { --adj-y: -26px; }
+
+/* Мышка перекрывает html — прячем её при сужении. */
+@media (max-width: 1100px) {
+  .deco-mouse { display: none; }
+}
+/* Ниже 1080: стилус с линией исчезает; css и ноутбук начинают
+   доп. уменьшаться, чтобы не наезжать друг на друга. */
+@media (max-width: 1080px) {
+  .deco-stylus,
+  .deco-line4 { display: none; }
+  .deco-css     { --size-scale: 0.78; }
+  .deco-macbook { --size-scale: 0.86; }
+  /* звезда справа от макбука учитывает его уменьшение → зазор снова 5px */
+  .deco-star6   { --anchor-scale: 0.86; }
+}
+.deco svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.deco-circle {
+  border-radius: 50%;
+  background: #efeff5;
+}
+
+/* --- Внутренние объекты сдвигаются НАРУЖУ (к своему краю) при сужении.
+   Пары/группы сдвигаются вместе:
+     • курсор + завиток line5 (кончик остаётся у остриё)
+     • мышь + обе её точки (связка не рвётся)
+     • айфон + звезда2 (спутник справа-сверху)
+     • кофе + звезда5 (спутник)
+   Ничего не прячем — уводим за край, не более ~половины иллюстрации.
+   Правило ПОСЛЕ .deco, чтобы перезаписать общий rotate. --- */
+/* Левый кластер: наружу = влево.
+   Со сдвигом идут: курсор+завиток, айфон+обе его звезды (2 оранжевая слева,
+   3 зелёная справа), мышь+обе точки. */
+.deco-cursor,
+.deco-line5,
+.deco-iphone,
+.deco-star2,
+.deco-star3,
+.deco-mouse,
+.deco--mouse-dot-l,
+.deco--mouse-dot-r {
+  --shift: calc(-1 * var(--squeeze));
+}
+/* Правый кластер: макбук + 2 круга-блоба слева от него (большой лимит). */
+.deco-macbook,
+.deco--r-blob-mac {
+  --shift: var(--squeeze-mac);
+}
+/* Звезда справа от макбука — уже у края экрана, поэтому меньший сдвиг,
+   чтобы не вылезти за границу (следует за ноутом мягче). */
+.deco-star6 {
+  --shift: var(--squeeze);
+}
+/* Правый кластер: кофе + его звёзды (5 сверху-справа, 4 слева-снизу)
+   — меньший лимит, рядом стилус. */
+.deco-coffee,
+.deco-star5,
+.deco-star4 {
+  --shift: var(--squeeze-coffee);
+}
+
+/* Маленькие круги-компаньоны исчезают на узком десктопе, когда при сжатии
+   заезжают на большие круги (по просьбе — «маленькие блобы должны пропадать
+   когда сталкиваются с большими»). Также маленькая одинокая звезда3/6 у края
+   ужалась до почти невидимого — пусть исчезают, чтобы не «съезжали». */
+@media (max-width: 1120px) {
+  .deco--r-blob-mac,
+  .deco--mouse-dot-l,
+  .deco--mouse-dot-r { display: none; }
+}
+
+/* Левая точка у мыши исчезает, когда группа мыши близка к большому
+   кругу слева-внизу (при сильном сужении). */
+@media (max-width: 1200px) {
+  .deco--mouse-dot-l { display: none; }
+}
+
+/* --- Центральная колонка: ФИКСИРОВАННЫЙ размер, по центру --- */
+.hero__content {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 489px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.hero__avatar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 16px;
+  padding-left: 20px;
+}
+.hero__photo {
+  width: 297px;
+  height: 297px;
+  padding: 12px;
+  margin-right: -72px;
+  background: var(--color-bg);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transform: rotate(-6deg);
+}
+.hero__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+.hero__peek {
+  position: relative;
+  z-index: 2;
+  width: 123.752px;
+  height: 129.04px;
+  transform: rotate(10deg);
+}
+
+.hero__headline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.hero__badge {
+  padding: 6px 8px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-badge);
+  color: var(--color-accent);
+  font-size: var(--fs-badge);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+}
+.hero__name {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: var(--fs-hero-name);
+  font-weight: var(--fw-medium);
+  letter-spacing: -0.56px;
+  line-height: var(--lh-base);
+  text-align: center;
+  white-space: nowrap;
+}
+.hero__subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--fs-hero-subtitle);
+  font-weight: var(--fw-medium);
+  letter-spacing: -0.23px;
+  line-height: var(--lh-base);
+  text-align: center;
+}
+.hero__actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding-top: 16px;
+}
+
+/* ============================================================
+   МОБИЛКА (<768px). Новая композиция из Figma («hero телефон» 402×874):
+     4 иконки (iphone, coffee, html, folder) по углам вокруг контента,
+     каждая со своими звёздами и большим блобом-соседом.
+     Контент по центру: фото с маскотом в правом-нижнем углу, бейдж,
+     имя, подзаголовок, 2 кнопки. Canvas-подход с --um = 100vw/402.
+   ============================================================ */
+@media (max-width: 767.98px) {
+  .hero {
+    --um: min(calc(100vw / 402), 1.1px);
+    position: relative;
+    width: calc(402 * var(--um));
+    max-width: 100vw;
+    margin: 0 auto;
+    height: calc(600 * var(--um));   /* 82 + 442 + 76 = 600, компактно */
+    display: block;
+    background: var(--color-bg);
+  }
+
+  /* Декор-оверлеи на весь холст. z-index:auto → контейнеры НЕ создают
+     собственный stacking context, поэтому z-index детей (.deco) работает
+     в общем контексте: блобы уходят ПОД иконки из ОБЕИХ полос. */
+  .hero__decor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: calc(402 * var(--um));
+    height: calc(600 * var(--um));
+    transform: none;
+    overflow: visible;
+    z-index: auto;
+  }
+  .deco {
+    --shift: 0px;
+    --adj-x: 0px;
+    --adj-y: 0px;
+    left: calc(var(--dmx) * var(--um));
+    top: calc(var(--dmy) * var(--um));
+    width: calc(var(--dmw) * var(--um));
+    height: calc(var(--dmh) * var(--um));
+  }
+  /* Блобы — ЗА всеми иконками (в т.ч. deco-folder). */
+  .deco--blob { z-index: 0; }
+  .deco:not(.deco--blob) { z-index: 1; }
+  .deco--m-hide { display: none; }
+
+  /* Явно скрываем всё, чего нет в новом мобильном макете. */
+  .deco-cursor,
+  .deco-mouse,
+  .deco-line5,
+  .deco-macbook,
+  .deco-css,
+  .deco-stylus,
+  .deco-line4,
+  .deco-star6 { display: none; }
+
+  /* Контент: точная позиция и размеры из Figma-мобилки. */
+  .hero__content {
+    position: absolute;
+    left: calc(43 * var(--um));
+    top: calc(82 * var(--um));
+    transform: none;
+    width: calc(315 * var(--um));
+    gap: calc(3 * var(--um));
+    z-index: 1;
+  }
+
+  /* Аватар: фото 171.6 (rotate -6°), peek выглядывает справа. */
+  .hero__avatar {
+    padding: 0 0 calc(9.3 * var(--um)) calc(29.1 * var(--um));
+    align-items: flex-end;
+  }
+  .hero__photo {
+    width: calc(171.6 * var(--um));
+    height: calc(171.6 * var(--um));
+    padding: calc(6.3 * var(--um));
+    margin-right: calc(-37.4 * var(--um));
+    border-width: 0.875px;
+    border-radius: calc(10.5 * var(--um));
+    transform: rotate(-6deg);
+  }
+  .hero__photo img { border-radius: calc(3.5 * var(--um)); }
+  .hero__peek {
+    width: calc(75.58 * var(--um));
+    height: auto;
+    transform: rotate(10deg);
+  }
+
+  /* Текст — точные размеры из Figma-мобилки. */
+  .hero__headline { align-items: center; gap: 0; padding-top: calc(3 * var(--um)); }
+  .hero__badge {
+    padding: calc(6 * var(--um)) calc(8 * var(--um));
+    border-width: 1.5px;
+    border-radius: 100px;
+    font-size: calc(14 * var(--um));
+    line-height: 1.2;
+  }
+  .hero__name {
+    font-size: calc(36 * var(--um));
+    letter-spacing: calc(-0.36 * var(--um));
+    line-height: 1.4;
+    margin: calc(4 * var(--um)) 0 0 0;
+  }
+  .hero__subtitle {
+    font-size: calc(19 * var(--um));
+    letter-spacing: calc(-0.19 * var(--um));
+    line-height: 1.4;
+    margin-top: calc(4 * var(--um));
+  }
+  .hero__subtitle br { display: none; }
+
+  .hero__actions {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: calc(8 * var(--um));
+    padding-top: calc(12 * var(--um));
+  }
+  .hero .btn {
+    width: calc(240 * var(--um));
+    height: calc(48 * var(--um));
+    padding: 0 calc(20 * var(--um));
+    gap: calc(12 * var(--um));
+    border-radius: calc(32 * var(--um));
+    font-size: calc(17 * var(--um));
+    justify-content: center;
+  }
+  .hero .btn__icon { width: calc(16 * var(--um)); height: auto; }
+}

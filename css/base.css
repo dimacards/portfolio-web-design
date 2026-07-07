@@ -1,0 +1,111 @@
+/* ============================================================
+   Base — сброс и общие правила. Без стилей конкретных секций.
+   ============================================================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+/* страница скроллится только вертикально.
+   ВАЖНО: overflow-x: clip держим на body, а не на html —
+   на html он ломает плавный скролл по якорям в Chrome. */
+body {
+  max-width: 100%;
+  overflow-x: clip;
+  overscroll-behavior-x: none;
+}
+
+/* плавный скролл по якорям (кроме reduced-motion) */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+/* одинаковый отступ от хедера при переходе к любой секции.
+   Высоты в px (не vh/dvh) — появление адресной строки браузера
+   на мобилке ничего не пересчитывает и не дёргает layout. */
+section[id] { scroll-margin-top: 92px; }
+
+/* ============================================================
+   Сетка сайта: единый контейнер для всех секций.
+   - контент не шире --container (1024, как в Figma-1024 сетке);
+   - по бокам всегда «воздух» --gutter (16px на мобилке → 40px на десктопе);
+   - секции центрируются, создавая ощущение пространства.
+   ============================================================ */
+:root {
+  --container: 1024px;
+  --gutter: clamp(16px, 4vw, 40px);
+}
+
+.container {
+  width: 100%;
+  max-width: calc(var(--container) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* Переиспользуемые кнопки-пилюли */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  height: var(--btn-height);
+  padding: 0 var(--btn-padding-x);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-medium);
+  letter-spacing: -0.22px;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.btn__icon {
+  flex-shrink: 0;
+}
+
+.btn--primary {
+  background: var(--color-dark);
+  color: var(--color-on-dark);
+}
+
+.btn--secondary {
+  gap: 11px;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}

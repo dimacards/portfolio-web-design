@@ -1,0 +1,167 @@
+/* ============================================================
+   Header (Figma 49:7337 desktop / 192:537 mobile)
+   + мобильное меню (193:561): панель из правого верхнего угла
+   с «жидкой» пружинной анимацией, фон — лёгкий белый блюр.
+   ============================================================ */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #fff;
+  border-bottom: 1.5px solid #edeef2;
+}
+.header__wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+.header__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1 1 auto;
+  margin-right: 12px;
+}
+.header__link {
+  padding: 12px;
+  border-radius: 4px;
+  font-family: "Inter", sans-serif;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 17px;
+  color: #343433;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+/* hover из Figma 49:7344: светлая плашка */
+.header__link:hover { background: #faf9f8; }
+
+.header__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 20px;
+  border-radius: 32px;
+  background: #171717;
+  color: #fff;
+  font-family: "Inter", sans-serif;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 17px;
+  letter-spacing: -0.22px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+}
+.header__cta:hover { opacity: 0.85; }
+.header__cta img { width: 16px; height: 14.7px; }
+
+/* --- Бургер (только мобилка): иконки из Figma, «жидкая» смена --- */
+.header__burger {
+  display: none;
+  position: relative;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.header__burger-ico {
+  position: absolute;
+  inset: 8px;
+  width: 24px;
+  height: 24px;
+  transition:
+    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.18s ease;
+}
+.header__burger-ico--x { transform: rotate(-90deg) scale(0.4); opacity: 0; }
+.menu-open .header__burger-ico--menu { transform: rotate(90deg) scale(0.4); opacity: 0; }
+.menu-open .header__burger-ico--x { transform: rotate(0deg) scale(1); opacity: 1; }
+
+/* --- Мобильное меню: во всю ширину, liquid-появление из правого
+   верхнего угла (несимметричный по осям bounce, как на iOS) --- */
+.mobile-menu {
+  position: fixed;
+  top: 80px;
+  left: 16px;
+  right: 16px;
+  z-index: 110;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: #fff;
+  border: 1.5px solid #edeef2;
+  border-radius: 32px;
+  transform-origin: calc(100% - 24px) -16px;
+  opacity: 0;
+  visibility: hidden;
+}
+.menu-open .mobile-menu {
+  visibility: visible;
+  animation: menu-liquid-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.menu-closing .mobile-menu {
+  visibility: visible;
+  animation: menu-liquid-out 0.18s ease-in both;
+}
+/* плавное «жидкое» раскрытие без баунса */
+@keyframes menu-liquid-in {
+  0%   { opacity: 0; transform: scale(0.25, 0.1); }
+  40%  { opacity: 1; }
+  100% { opacity: 1; transform: scale(1, 1); }
+}
+@keyframes menu-liquid-out {
+  0%   { opacity: 1; transform: scale(1, 1); }
+  100% { opacity: 0; transform: scale(0.3, 0.15); }
+}
+.mobile-menu a {
+  padding: 0 12px;
+  font-family: "Inter", sans-serif;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 17px;
+  color: #343433;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* --- Блюр всего, кроме хедера и меню --- */
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90; /* ниже хедера (100) и меню (110) */
+  background: rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.menu-open .menu-backdrop {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* --- Адаптив --- */
+@media (max-width: 900px) {
+  .header__nav { display: none; }
+  .header__burger { display: block; }
+  .header__wrap {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+}
+@media (min-width: 901px) {
+  .mobile-menu, .menu-backdrop { display: none; }
+}

@@ -1,0 +1,143 @@
+/* ============================================================
+   Секция «О моём дизайне» — размеры и позиции 1:1 из Figma
+   (node 25:5516 desktop, 155:164 mobile).
+   Каждая иконка — отдельный <img> внутри .d2 (float / twinkle / blob),
+   поднимает готовые keyframes из animations.css.
+   ============================================================ */
+
+.about-design {
+  padding: 74px 0 89px;
+  background: #fff;
+}
+.about-design__wrap {
+  /* ширину и боковые отступы даёт .container */
+  display: flex;
+  flex-direction: column;
+  gap: 58px;
+}
+.about-design__title {
+  margin: 0;
+  text-align: center;
+  font-family: "Inter", sans-serif;
+  font-size: 44px;
+  font-weight: 400;
+  letter-spacing: -0.44px;
+  line-height: 48px;
+  color: #121212;
+}
+.about-design__cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 34px;
+}
+
+.card2 {
+  background: #f9f9fb;
+  border-radius: 12px;
+  padding: 20px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.card2__illus {
+  position: relative;
+  background: #fff;
+  border-radius: 4px;
+  aspect-ratio: 1 / 1;
+  /* visible: при покачивании иконки не режутся кромкой бокса */
+  overflow: visible;
+}
+.card2__caption {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.card2__title {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #121212;
+}
+.card2__text {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: #444;
+}
+
+/* --- Декор внутри карточки: центр в % от квадрата 278.67 --- */
+.d2 {
+  position: absolute;
+  /* левый-верх = центр − полразмера: без transform, чтобы
+     keyframes (blob-in/breathe) не сдвигали позицию */
+  left: calc(var(--x) - var(--w) / 2);
+  top: calc(var(--y) - var(--h) / 2);
+  width: var(--w);
+  height: var(--h);
+  pointer-events: none;
+}
+.d2 > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 50%;
+}
+.d2.deco--blob { z-index: 0; }
+.d2:not(.deco--blob) { z-index: 1; }
+
+/* зеркальные элементы (маскот, синее сообщение) — transform на span,
+   т.к. keyframes идут на вложенном img и не конфликтуют */
+.d2--mirror { transform: scaleX(-1) rotate(var(--tilt, 0deg)); }
+
+/* --- Уменьшенная амплитуда покачивания в этой секции
+   (как у hero на мобилке): float и у звёзд, и у объектов --- */
+.about-design[data-animate].is-visible .deco--float > :first-child {
+  animation-name: deco-pop, s2-floaty;
+}
+@keyframes s2-floaty {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%      { transform: translate3d(0, -6px, 0) rotate(-1.5deg); }
+}
+@keyframes s2-floaty-m {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%      { transform: translate3d(0, -11px, 0) rotate(-3deg); }
+}
+@keyframes s2-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* --- Мобильный макет (Figma 402: node 155:164) --- */
+@media (max-width: 780px) {
+  .about-design { padding: 24px 0; }
+  .about-design__wrap { gap: 32px; }
+  /* одна колонка: карточка не растягивается во весь экран,
+     а держит «фигмовскую» ширину и центрируется */
+  .card2 {
+    width: 100%;
+    max-width: 420px;
+    margin-inline: auto;
+  }
+  .about-design__title {
+    font-size: 32px;
+    line-height: 48px;
+    letter-spacing: -0.32px;
+  }
+  .about-design__cards { grid-template-columns: 1fr; gap: 16px; }
+  .card2 { padding: 20px 20px 14px; gap: 12px; }
+  .card2__title { font-size: 19px; }
+  .card2__text { font-size: 17px; }
+
+  /* на мобилке анимации заметнее: амплитуда больше, звёзды крутятся */
+  .about-design[data-animate].is-visible .deco--float > :first-child {
+    animation-name: deco-pop, s2-floaty-m;
+  }
+  .about-design[data-animate].is-visible .d2--star > :first-child {
+    animation: deco-pop var(--dur-base, 0.7s) var(--ease-spring, ease-out) var(--deco-delay, 0ms) both,
+               s2-spin 13s linear infinite;
+  }
+}

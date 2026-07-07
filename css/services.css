@@ -1,0 +1,102 @@
+/* ============================================================
+   Секция «Услуги» (Figma 57:7553 desktop / 155:432 mobile).
+   Десктоп: слева заголовок+подпись, справа колонка карточек 632px.
+   Мобилка: заголовок по центру, карточки колонкой, подпись внизу.
+   ============================================================ */
+
+.services {
+  padding: 74px 0 89px;
+  background: #fff;
+}
+.services__wrap {
+  display: flex;
+  gap: 58px;
+  align-items: center;
+}
+.services__head {
+  flex: 1 0 0;
+  min-width: 1px;
+  display: flex;
+  flex-direction: column;
+}
+.services__title {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 44px;
+  font-weight: 400;
+  letter-spacing: -0.44px;
+  line-height: 1.4;
+  color: #121212;
+}
+.services__note {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: #444;
+}
+
+.services__list {
+  width: 632px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.service-card {
+  background: #f9f9fb;
+  border-radius: 12px;
+  padding: 20px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.service-card__title {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #0086fc;
+}
+.service-card__text {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: #444;
+}
+
+/* --- Мобилка (155:432): колонка, заголовок сверху, подпись внизу --- */
+@media (max-width: 900px) {
+  .services { padding: 24px 0; }
+  .services__wrap {
+    flex-direction: column;
+    gap: 24px;
+    align-items: stretch;
+  }
+  .services__head { align-items: center; gap: 0; }
+  .services__title {
+    font-size: 32px;
+    line-height: 48px;
+    letter-spacing: -0.32px;
+    text-align: center;
+  }
+  /* подпись переезжает вниз — рендерится отдельным элементом */
+  .services__head .services__note { display: none; }
+  .services__note--bottom {
+    display: block;
+    text-align: center;
+    order: 10;
+  }
+  .services__list {
+    width: 100%;
+    gap: 16px;
+  }
+}
+/* на десктопе нижняя копия подписи скрыта */
+@media (min-width: 901px) {
+  .services__note--bottom { display: none; }
+}
