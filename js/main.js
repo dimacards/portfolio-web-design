@@ -42,3 +42,29 @@
     if (e.key === "Escape") setOpen(false);
   });
 })();
+
+// --- Полный запрет масштабирования страницы ---
+(function () {
+  "use strict";
+  // пинч-зум в Safari (iOS/iPadOS), где user-scalable=no игнорируется
+  ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {
+    document.addEventListener(ev, function (e) { e.preventDefault(); }, { passive: false });
+  });
+  // Ctrl/Cmd + колесо мыши (десктоп)
+  document.addEventListener("wheel", function (e) {
+    if (e.ctrlKey || e.metaKey) e.preventDefault();
+  }, { passive: false });
+  // Ctrl/Cmd + «+» / «-» / «0»
+  document.addEventListener("keydown", function (e) {
+    if ((e.ctrlKey || e.metaKey) && ["+", "-", "=", "0"].indexOf(e.key) !== -1) {
+      e.preventDefault();
+    }
+  });
+  // двойной тап для зума на мобилке
+  var lastTouch = 0;
+  document.addEventListener("touchend", function (e) {
+    var now = Date.now();
+    if (now - lastTouch <= 300) e.preventDefault();
+    lastTouch = now;
+  }, { passive: false });
+})();

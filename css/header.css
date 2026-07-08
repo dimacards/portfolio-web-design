@@ -18,12 +18,11 @@
   padding-top: 16px;
   padding-bottom: 16px;
 }
+/* display: contents — ссылки становятся прямыми флекс-детьми хедера
+   и распределяются вместе с кнопкой «Связаться» через space-between,
+   поэтому расстояние между всеми пунктами и кнопкой одинаковое */
 .header__nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex: 1 1 auto;
-  margin-right: 12px;
+  display: contents;
 }
 .header__link {
   padding: 12px;
